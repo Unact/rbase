@@ -111,7 +111,7 @@ module RBase
       
       def initialize(name, options = {})
         size = options[:size] || 18
-        size = 18 if size > 18
+        #size = 18 if size > 18
         
         super name, options.merge(:size => size)
       end
@@ -130,7 +130,11 @@ module RBase
 
       def unpack(data)
         return nil if data.strip == ''
-        data.rstrip.to_i
+        if data['.']
+					data.rstrip.to_f
+				else
+					data.rstrip.to_i
+				end
       end
 
       def inspect
@@ -239,7 +243,7 @@ module RBase
       end
 
       def unpack(data)
-        data.rstrip.to_f
+        data.rstrip.to_i
       end
 
       def inspect

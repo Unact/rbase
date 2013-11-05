@@ -117,7 +117,6 @@ module RBase
       @data
     end
 
-    protected
 
     # Returns value of specified column
     def get_value(name)
