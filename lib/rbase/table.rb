@@ -181,8 +181,8 @@ module RBase
       @count = header.unpack('@4V').first
       @language = header.unpack('@29c').first
 
-      @record_offset = *header.unpack('@8v')
-      @record_size = *header.unpack('@10v')
+      @record_offset = header.unpack('@8v').first
+      @record_size = header.unpack('@10v').first
 
       @file.pos = 32
 
@@ -195,10 +195,9 @@ module RBase
         break if column_data[0, 1] == "\x0d"
         name, type, offset, size, decimal = *column_data.unpack('@0a11aLCC')
         name = name.strip
-		if type.to_s == '0'
-			type = 'N'
-		else puts type.to_s	
-		end
+	if type.to_s == '0'
+	    type = 'N'
+	end
         @columns << Columns::Column.column_for(type).new(name, options.merge(:offset => offset, :size => size, :decimal => decimal))
         @name_to_columns[name.upcase.to_sym] = @columns.last
       end
