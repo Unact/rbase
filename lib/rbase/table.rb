@@ -15,8 +15,7 @@ module RBase
       record_size = 1+schema.columns.inject(0) { |size, column| size + column.size }
 
       data = ''
-      data << [0xf5].pack('C') # version
-      #data << [0x3].pack('C') # version
+      data << [0x03].pack('C') # version
       data << [date.year % 100, date.month, date.day].pack('CCC') # last modification date
       data << [0].pack('L') # number of records
       # data << [32+schema.columns.size*32+263+1].pack('v') # data size
@@ -182,8 +181,8 @@ module RBase
       @count = header.unpack('@4V').first
       @language = header.unpack('@29c').first
 
-      @record_offset = header.unpack('@8v').first
-      @record_size = header.unpack('@10v').first
+      @record_offset = *header.unpack('@8v')
+      @record_size = *header.unpack('@10v')
 
       @file.pos = 32
 
@@ -196,6 +195,10 @@ module RBase
         break if column_data[0, 1] == "\x0d"
         name, type, offset, size, decimal = *column_data.unpack('@0a11aLCC')
         name = name.strip
+		if type.to_s == '0'
+			type = 'N'
+		else puts type.to_s	
+		end
         @columns << Columns::Column.column_for(type).new(name, options.merge(:offset => offset, :size => size, :decimal => decimal))
         @name_to_columns[name.upcase.to_sym] = @columns.last
       end
@@ -211,7 +214,7 @@ module RBase
         @file.write record.serialize
         @file.write [26].pack('c')
         record.instance_variable_set(:@index, count)
-        self.count = count + 1
+        self.count += 1
       else
         throw "Index out of bound" if record.index>=count
         @file.pos = @record_offset + @record_size*record.index
