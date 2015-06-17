@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 module RBase
 
   class Table
@@ -166,7 +168,36 @@ module RBase
         yield record unless record.deleted?
       end
     end
-
+    
+    def from_xml(file_name)
+      reader = Nokogiri::XML::Reader(File.open(file_name))
+      rd = {}
+      field_name = ''
+      field_type = ''
+      reader.each do |node|
+        if node.name == "row_data" && node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+          rd = {}
+        elsif node.attributes["data_type"] && node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+          field_name = node.name
+          field_type = node.attributes["data_type"]
+        elsif node.name == "#text" && node.node_type == Nokogiri::XML::Reader::TYPE_TEXT
+          rd[field_name] = case field_type
+                        when "int"     then node.value.to_i
+                        when "string"  then node.value.to_s.encode(Encoding::Windows_1251)
+                        when "numeric" then node.value.to_f
+                        when "bool"    then node.value.to_i == 1
+                        when "sdate"   then DateTime.parse(node.value).strftime("%Y%m%d %H:%M")
+                        when "date"    then DateTime.parse(node.value)
+                        else node.value
+                     end
+        elsif node.name == "row_data" && node.node_type == Nokogiri::XML::Reader::TYPE_END_ELEMENT
+            # Сохраняем строку
+            self.create( rd )
+        end
+      end
+      
+    end
+    
     private
 
     def open(name, options = {})
@@ -236,6 +267,8 @@ module RBase
       @file.write([last_modified_on.year % 100, last_modified_on.month, last_modified_on.day].pack('ccc'))
       @file.write([count].pack('V'))
     end
+    
+
   end
 
 end
