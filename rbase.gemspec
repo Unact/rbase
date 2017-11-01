@@ -4,8 +4,7 @@ Gem::Specification.new do |s|
   s.summary = 'Library to create/read/write to XBase databases (*.DBF files)'
   s.files = Dir.glob('**/*').delete_if { |item| item.include?('.svn') }
   s.require_path = 'lib'
-  s.authors = 'Vladimir Sudakov'
-  s.email = 'vsudakov@bk.ru'
+  s.authors = ['Unact']
   s.homepage = 'https://github.com/Unact/rbase'
   s.rubyforge_project = 'rbase'
   s.has_rdoc = true
